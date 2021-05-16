@@ -635,17 +635,18 @@ Countly::HTTPResponse Countly::sendHTTP(std::string path, std::string data) {
 		SHA256_Update(&sha256, salted_data.c_str(), salted_data.size());
 		SHA256_Final(checksum, &sha256);
 
-		std::ostringstream checksum_stream;
-		for (size_t index = 0; index < SHA256_DIGEST_LENGTH; index++) {
-			checksum_stream << std::setw(2) << std::hex << checksum[index];
-		}
+        std::ostringstream checksum_stream;
+        for (size_t index = 0; index < SHA256_DIGEST_LENGTH; index++) {
+            checksum_stream << std::hex << std::setw(2) << std::setfill('0')
+                            << (int) checksum[index];
+        }
 
-		if (!data.empty()) {
-			data += '&';
-		}
+        if (!data.empty()) {
+            data += '&';
+        }
 
-		data += "checksum256=";
-		data += checksum_stream.str();
+        data += "checksum256=";
+        data += checksum_stream.str();
 	}
 #ifdef COUNTLY_USE_CUSTOM_HTTP
 	if (http_client_function == nullptr) {
@@ -757,8 +758,8 @@ Countly::HTTPResponse Countly::sendHTTP(std::string path, std::string data) {
 
 		if (!use_post) {
 			full_url_stream << '?' << data;
-			curl_easy_setopt(curl, CURLOPT_NOBODY, 1);
-		} else {
+            // curl_easy_setopt(curl, CURLOPT_NOBODY, 1);
+        } else {
 			curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
 		}
 
@@ -767,10 +768,10 @@ Countly::HTTPResponse Countly::sendHTTP(std::string path, std::string data) {
 
 		std::string body;
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, countly_curl_write_callback);
-		curl_easy_setopt(curl, CURLOPT_WRITEDATA, &body);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &body);
 
-		curl_code = curl_easy_perform(curl);
-		if (curl_code == CURLE_OK) {
+        curl_code = curl_easy_perform(curl);
+        if (curl_code == CURLE_OK) {
 			long status_code;
 			curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status_code);
 			response.success = (status_code >= 200 && status_code < 300);
